@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Conectando TikTok - Central de Comando</title>
+</head>
+<body>
+<p id="status">Conectando sua conta do TikTok...</p>
+<script>
+(function () {
+  var params = new URLSearchParams(window.location.search);
+  var code = params.get("code");
+  var state = params.get("state");
+  var error = params.get("error");
+  var statusEl = document.getElementById("status");
+  var backendBase = "http://localhost:8000";
+  var frontendBase = "http://localhost:5173";
+
+  if (error) {
+    statusEl.textContent = "TikTok recusou a autorizacao. Pode fechar esta aba e tentar de novo.";
+    return;
+  }
+  if (!code || !state) {
+    statusEl.textContent = "Faltam parametros na resposta do TikTok. Pode fechar esta aba e tentar de novo.";
+    return;
+  }
+
+  var callbackUrl = backendBase + "/api/oauth/tiktok/callback?code=" + encodeURIComponent(code) +
+    "&state=" + encodeURIComponent(state);
+
+  fetch(callbackUrl, { mode: "cors", redirect: "manual" })
+    .then(function () {
+      statusEl.textContent = "Conectado. Redirecionando para a Central de Comando...";
+      window.location.href = frontendBase + "/?conta_conectada=tiktok";
+    })
+    .catch(function () {
+      statusEl.textContent = "Nao foi possivel falar com a Central de Comando local. " +
+        "Confirme que ela esta aberta (localhost:8000) e tente conectar de novo.";
+    });
+})();
+</script>
+</body>
+</html>
